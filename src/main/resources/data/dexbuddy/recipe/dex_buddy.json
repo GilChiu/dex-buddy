@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "tag": "cobblemon:pokedex" },
+    { "item": "minecraft:lightning_rod" },
+    { "item": "minecraft:redstone" }
+  ],
+  "result": {
+    "id": "dexbuddy:dex_buddy",
+    "count": 1
+  }
+}

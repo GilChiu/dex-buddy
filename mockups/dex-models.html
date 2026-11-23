@@ -1,0 +1,449 @@
+<title>Volty Model Picker</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700&family=Silkscreen&display=swap">
+<style>
+/* Layout: a toy-shop counter. One big floating stage with the model on a grass block, its story beside it, and a shelf of five below. */
+:root {
+  --bg: #EEF3FB;
+  --panel: #FFFFFF;
+  --ink: #1C2433;
+  --muted: #5B6780;
+  --line: #D5DEEC;
+  --accent: #E8473F;
+  --on-accent: #FFFFFF;
+  --volt: #FFC93C;
+  --sky-top: #BFE3FF;
+  --sky-bot: #F4F9FF;
+  --chip: #F3F6FC;
+  --f-display: "Fredoka", "Nunito", system-ui, sans-serif;
+  --f-body: "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-pixel: "Silkscreen", ui-monospace, "Consolas", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1320; --panel: #161D2E; --ink: #EAF0FA; --muted: #9AA8C2; --line: #26314A;
+    --accent: #FF5E55; --on-accent: #FFFFFF; --volt: #FFD45C; --sky-top: #1D2D50; --sky-bot: #101A30; --chip: #1C2539;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E1320; --panel: #161D2E; --ink: #EAF0FA; --muted: #9AA8C2; --line: #26314A;
+  --accent: #FF5E55; --on-accent: #FFFFFF; --volt: #FFD45C; --sky-top: #1D2D50; --sky-bot: #101A30; --chip: #1C2539;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 16px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 48px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 22px; }
+header { display: grid; gap: 6px; }
+.eyebrow { font-family: var(--f-pixel); font-size: 12px; letter-spacing: .08em; color: var(--accent); text-transform: uppercase; }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(30px, 5vw, 46px); line-height: 1.05; margin: 0; text-wrap: balance; }
+h1 .bolt { color: var(--volt); -webkit-text-stroke: 1.5px var(--ink); paint-order: stroke fill; }
+.lede { color: var(--muted); margin: 0; max-width: 62ch; }
+
+.main { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 22px; align-items: stretch; }
+@media (max-width: 820px) { .main { grid-template-columns: minmax(0, 1fr); } }
+
+.stage {
+  position: relative; border-radius: 22px; overflow: hidden; min-height: 380px; aspect-ratio: 4 / 3.4; max-width: 100%;
+  background: linear-gradient(180deg, var(--sky-top), var(--sky-bot));
+  border: 2px solid var(--line); touch-action: none; cursor: grab;
+}
+.stage:active { cursor: grabbing; }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.stage .hint {
+  position: absolute; left: 14px; bottom: 12px; font-family: var(--f-pixel); font-size: 11px; color: var(--muted);
+  background: color-mix(in srgb, var(--panel) 75%, transparent); padding: 4px 8px; border-radius: 8px; pointer-events: none;
+}
+.stage .cloud { position: absolute; top: 14%; width: 90px; height: 22px; background: color-mix(in srgb, var(--panel) 70%, transparent); border-radius: 4px; animation: drift 38s linear infinite; }
+.stage .cloud::after { content: ""; position: absolute; left: 22px; top: -12px; width: 40px; height: 14px; background: inherit; border-radius: 4px; }
+.stage .cloud.c2 { top: 30%; width: 64px; animation-duration: 52s; animation-delay: -20s; opacity: .7; }
+@keyframes drift { from { transform: translateX(-120px); } to { transform: translateX(1200px); } }
+
+.info { background: var(--panel); border: 2px solid var(--line); border-radius: 22px; padding: 22px; display: grid; gap: 16px; align-content: start; min-width: 0; }
+.tag { justify-self: start; font-family: var(--f-pixel); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; background: var(--volt); color: #2A1E00; padding: 3px 9px; border-radius: 999px; }
+.info h2 { font-family: var(--f-display); font-weight: 700; font-size: 30px; line-height: 1.1; margin: 0; }
+.tagline { margin: 0; color: var(--muted); font-size: 17px; }
+.traits { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.traits li { display: grid; grid-template-columns: 14px 1fr; gap: 10px; align-items: baseline; }
+.traits li::before { content: ""; width: 10px; height: 10px; background: var(--accent); transform: translateY(1px); }
+.label { font-family: var(--f-pixel); font-size: 11px; letter-spacing: .06em; color: var(--muted); text-transform: uppercase; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+button { font: inherit; }
+.act {
+  font-family: var(--f-display); font-weight: 600; font-size: 15px; padding: 8px 14px; border-radius: 12px;
+  border: 2px solid var(--line); background: var(--chip); color: var(--ink); cursor: pointer; transition: transform .12s, border-color .12s;
+}
+.act:hover { border-color: var(--accent); transform: translateY(-1px); }
+.act:active { transform: translateY(1px); }
+.choose {
+  font-family: var(--f-display); font-weight: 700; font-size: 18px; padding: 12px 18px; border-radius: 14px; border: 0;
+  background: var(--accent); color: var(--on-accent); cursor: pointer; box-shadow: 0 4px 0 color-mix(in srgb, var(--accent) 60%, #000);
+  transition: transform .1s, box-shadow .1s;
+}
+.choose:active { transform: translateY(3px); box-shadow: 0 1px 0 color-mix(in srgb, var(--accent) 60%, #000); }
+.choose[aria-pressed="true"] { background: var(--volt); color: #2A1E00; box-shadow: 0 4px 0 color-mix(in srgb, var(--volt) 55%, #000); }
+:focus-visible { outline: 3px solid var(--volt); outline-offset: 2px; }
+
+.pick { border-top: 2px dashed var(--line); padding-top: 14px; display: grid; gap: 8px; }
+.pick p { margin: 0; }
+.say { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.say code { font-family: var(--f-body); font-weight: 700; background: var(--chip); border: 1px solid var(--line); padding: 6px 10px; border-radius: 10px; min-width: 0; overflow-wrap: anywhere; }
+.copy { font-family: var(--f-pixel); font-size: 11px; padding: 7px 10px; border-radius: 10px; border: 2px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; }
+
+.shelf-wrap { overflow-x: auto; padding-bottom: 4px; }
+.shelf { display: grid; grid-template-columns: repeat(5, minmax(150px, 1fr)); gap: 12px; min-width: 780px; }
+@media (min-width: 821px) { .shelf { min-width: 0; } }
+.thumb {
+  display: grid; gap: 4px; justify-items: center; padding: 10px 8px 12px; border-radius: 18px; border: 2px solid var(--line);
+  background: var(--panel); color: var(--ink); cursor: pointer; transition: transform .15s, border-color .15s;
+}
+.thumb:hover { transform: translateY(-3px); }
+.thumb[aria-current="true"] { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+.thumb img { width: 100%; max-width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 12px; background: linear-gradient(180deg, var(--sky-top), var(--sky-bot)); }
+.thumb .n { font-family: var(--f-display); font-weight: 600; font-size: 16px; line-height: 1.2; text-align: center; }
+.thumb .t { font-family: var(--f-pixel); font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.thumb .star { font-family: var(--f-pixel); font-size: 10px; color: var(--accent); min-height: 14px; }
+.foot { color: var(--muted); font-size: 14px; margin: 0; }
+@media (prefers-reduced-motion: reduce) { .stage .cloud { animation: none; } .thumb, .act { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Dex Buddy &middot; companion model</span>
+    <h1>Pick Volty's <span class="bolt">look</span></h1>
+    <p class="lede">Five takes on your floating Dex companion, all built from Minecraft-sized boxes. Drag to spin one around, poke it with the buttons, then choose the one you want in the mod.</p>
+  </header>
+
+  <section class="main">
+    <div class="stage" id="stage" aria-label="3D preview, drag to rotate">
+      <div class="cloud"></div><div class="cloud c2"></div>
+      <span class="hint">drag to spin</span>
+    </div>
+
+    <div class="info">
+      <span class="tag" id="tag">Iconic</span>
+      <h2 id="name">Rotom Dex Classic</h2>
+      <p class="tagline" id="tagline"></p>
+      <ul class="traits" id="traits"></ul>
+      <div class="label">Try it</div>
+      <div class="actions">
+        <button class="act" id="b-talk" type="button">Talk</button>
+        <button class="act" id="b-pet" type="button">Pet</button>
+        <button class="act" id="b-bonk" type="button">Bonk</button>
+      </div>
+      <button class="choose" id="choose" type="button" aria-pressed="false">Choose this one</button>
+      <div class="pick" id="pick" hidden>
+        <p><strong id="pick-name"></strong> is your pick. Send this to Claude to build it:</p>
+        <div class="say"><code id="say"></code><button class="copy" id="copy" type="button">Copy</button></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="shelf-wrap"><nav class="shelf" id="shelf" aria-label="Models"></nav></div>
+  <p class="foot">Every model keeps Volty's tricks from the mod: the face blinks, the mouth moves with the voice, it squeezes its eyes when happy and makes a dizzy face when you punch it.</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(() => {
+  const RM = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---------- pixel faces ----------
+  function makeScreen(g, w, h, x, y, z, o) {
+    const cv = document.createElement('canvas');
+    cv.width = 16; cv.height = o.tall ? 24 : 12;
+    const tex = new THREE.CanvasTexture(cv);
+    tex.magFilter = THREE.NearestFilter; tex.minFilter = THREE.NearestFilter;
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: tex }));
+    m.position.set(x, y, z); g.add(m);
+    return { cv, tex, o: Object.assign({ oy: o.tall ? 6 : 0 }, o), key: '' };
+  }
+  function drawFace(s, state, t, blink) {
+    const mouthPhase = state === 'talk' ? [1, 2, 1, 0][Math.floor(t * 10) % 4] : 0;
+    const key = state + '|' + blink + '|' + mouthPhase;
+    if (key === s.key) return;
+    s.key = key;
+    const c = s.cv.getContext('2d'), o = s.o;
+    c.fillStyle = o.bg; c.fillRect(0, 0, s.cv.width, s.cv.height);
+    const px = (x, y, w, h, col) => { c.fillStyle = col; c.fillRect(x, o.oy + y, w, h); };
+    const E = o.eye, M = o.mouth || o.eye;
+    for (const ex of [4, 10]) {
+      if (state === 'bonk') {
+        if (ex === 4) { px(4, 3, 1, 1, E); px(5, 4, 1, 1, E); px(4, 5, 1, 1, E); }
+        else { px(11, 3, 1, 1, E); px(10, 4, 1, 1, E); px(11, 5, 1, 1, E); }
+      } else if (state === 'happy') { px(ex - 1, 4, 1, 1, E); px(ex, 3, 2, 1, E); px(ex + 2, 4, 1, 1, E); }
+      else if (blink) { px(ex, 5, 2, 1, E); }
+      else { px(ex, 3, 2, 3, E); px(ex, 3, 1, 1, o.shine || '#FFFFFF'); }
+    }
+    if (state === 'talk') {
+      if (mouthPhase === 0) px(6, 8, 4, 1, M);
+      else { px(7, 8, 2, mouthPhase, M); if (mouthPhase === 2) px(7, 9, 2, 1, '#FF7AA2'); }
+    } else if (state === 'happy') { px(6, 8, 4, 1, M); px(7, 9, 2, 1, M); }
+    else if (state === 'bonk') { [5, 7, 9].forEach(x => px(x, 9, 1, 1, M)); [6, 8, 10].forEach(x => px(x, 8, 1, 1, M)); }
+    else { px(6, 8, 1, 1, M); px(7, 9, 2, 1, M); px(9, 8, 1, 1, M); }
+    if (state === 'happy' || o.blush) { px(1, 7, 2, 1, o.cheek || '#FF7AA2'); px(13, 7, 2, 1, o.cheek || '#FF7AA2'); }
+    s.tex.needsUpdate = true;
+  }
+
+  // ---------- voxel helpers ----------
+  const mats = {};
+  const mat = c => mats[c] || (mats[c] = new THREE.MeshLambertMaterial({ color: c }));
+  function box(g, w, h, d, x, y, z, c) {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(c));
+    m.position.set(x, y, z); g.add(m); return m;
+  }
+  function bolt(g, side, c, x0, y0, z) { // zigzag lightning arm, pivoting at the body
+    const arm = new THREE.Group(); arm.position.set(x0 * side, y0, z); g.add(arm);
+    box(arm, 3, 1.2, 1.2, 1.5 * side, 0, 0, c);
+    box(arm, 1.2, 3, 1.2, 2.6 * side, 1.4, 0, c);
+    box(arm, 2.6, 1.2, 1.2, 3.7 * side, 2.6, 0, c);
+    return arm;
+  }
+
+  // ---------- the five models ----------
+  const MODELS = [
+    {
+      id: 'classic', name: 'Rotom Dex Classic', tag: 'Iconic',
+      tagline: 'The one everyone recognizes on sight.',
+      traits: ['Zigzag lightning arms that wave while it talks', 'Two antennae with white tips', 'Glowing blue eyes on a dark screen'],
+      build() {
+        const g = new THREE.Group();
+        box(g, 10, 13, 3, 0, 0, 0, '#E8473F');
+        box(g, 10.2, 2.2, 3.2, 0, -5.4, 0, '#F4F4F4');
+        box(g, 4, 0.6, 0.3, 0, -5.4, 1.65, '#9AA3B5');
+        box(g, 8.8, 7, 0.3, 0, 2.2, 1.6, '#0D1628');
+        const scr = makeScreen(g, 8, 6, 0, 2.2, 1.78, { bg: '#1B2A49', eye: '#7FE8FF', mouth: '#7FE8FF' });
+        const armL = bolt(g, -1, '#FF9F1C', 5, -0.5, 0), armR = bolt(g, 1, '#FF9F1C', 5, -0.5, 0);
+        for (const s of [-1, 1]) { box(g, 1, 3, 1, 3 * s, 8, 0, '#E8473F'); box(g, 1.6, 1.6, 1.6, 3 * s, 10, 0, '#FFFFFF'); }
+        return { g, screens: [scr], anim(t, st) {
+          const w = st === 'talk' ? Math.sin(t * 14) * 0.35 : Math.sin(t * 2) * 0.08;
+          armL.rotation.z = -w; armR.rotation.z = w;
+        } };
+      }
+    },
+    {
+      id: 'phone', name: 'Rotom Phone', tag: 'Expressive',
+      tagline: 'Slim, sassy, and all screen.',
+      traits: ['The whole front is one big face', 'Tiny stub hands that bob along', 'Camera dot and little bolt ears'],
+      build() {
+        const g = new THREE.Group();
+        box(g, 9, 15, 1.6, 0, 0, 0, '#F2603B');
+        box(g, 8, 12.6, 0.2, 0, -0.4, 0.82, '#151A2B');
+        const scr = makeScreen(g, 7.6, 12, 0, -0.4, 0.94, { bg: '#2A2F45', eye: '#FFE066', mouth: '#FFE066', tall: true });
+        box(g, 1, 1, 0.3, 0, 6.8, 0.9, '#151A2B');
+        box(g, 2.4, 2.4, 0.4, 2.2, 5, -0.95, '#151A2B');
+        const hands = [-1, 1].map(s => box(g, 1.8, 1.8, 1.8, 5.6 * s, -1, 0, '#FFD23F'));
+        for (const s of [-1, 1]) { box(g, 1.2, 2.2, 1, 2.6 * s, 8.4, 0, '#FF9F1C'); box(g, 1.2, 1.2, 1, 3.4 * s, 9.8, 0, '#FF9F1C'); }
+        return { g, screens: [scr], anim(t, st) {
+          const k = st === 'talk' ? 10 : 3;
+          hands.forEach((h, i) => { h.position.y = -1 + Math.sin(t * k + i * Math.PI) * (st === 'talk' ? 1.2 : 0.4); });
+          g.rotation.z = Math.sin(t * 1.5) * 0.06;
+        } };
+      }
+    },
+    {
+      id: 'kanto', name: 'Kanto Flip Dex', tag: 'Retro',
+      tagline: 'Gen 1 nostalgia that woke up.',
+      traits: ['The lid flaps like a mouth when it talks', 'Big blue lens with the three status lights', 'Old handheld green screen face'],
+      build() {
+        const g = new THREE.Group();
+        box(g, 11, 8, 3, 0, -3, 0, '#D8362F');
+        box(g, 9.4, 6.8, 0.3, 0, -3, 1.6, '#2D3A12');
+        const scr = makeScreen(g, 8.6, 6, 0, -3, 1.78, { bg: '#9BBC0F', eye: '#0F380F', mouth: '#0F380F', shine: '#9BBC0F' });
+        box(g, 11, 1.2, 1.2, 0, 1, -1, '#9E2420');
+        const lid = new THREE.Group(); lid.position.set(0, 1, -1); g.add(lid);
+        box(lid, 11, 9, 1.5, 0, 4.5, 0, '#D8362F');
+        box(lid, 4.4, 4.4, 0.4, -2.8, 5.8, 0.85, '#FFFFFF');
+        box(lid, 3.4, 3.4, 0.6, -2.8, 5.8, 1.0, '#3FA9F5');
+        box(lid, 1, 1, 0.3, -3.6, 6.6, 1.35, '#E6F6FF');
+        [['#FF4D4D', 0.8], ['#FFD23F', 2.4], ['#5EDB6A', 4]].forEach(([c, x]) => box(lid, 1, 1, 0.4, x, 7.4, 0.85, c));
+        box(g, 2.6, 0.8, 0.3, -3, -6.2, 1.6, '#2A2A2A'); box(g, 0.8, 2.6, 0.3, -3, -6.2, 1.62, '#2A2A2A');
+        return { g, screens: [scr], anim(t, st) {
+          let open = 0.35;
+          if (st === 'talk') open += (0.5 + 0.5 * Math.sin(t * 14)) * 0.45;
+          if (st === 'happy') open += 0.25 + Math.sin(t * 9) * 0.15;
+          lid.rotation.x = -open;
+        } };
+      }
+    },
+    {
+      id: 'ball', name: 'Dex Ball', tag: 'Cute',
+      tagline: 'A Poké Ball that grew a face in its button.',
+      traits: ['Bounces and squashes as it floats', 'Little sprout antenna on top', 'A spark tail that wags behind it'],
+      build() {
+        const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
+        box(body, 10.4, 1.2, 10.4, 0, 0, 0, '#23262E');
+        box(body, 10, 3, 10, 0, 2.1, 0, '#E8473F'); box(body, 8, 1.6, 8, 0, 4.4, 0, '#E8473F'); box(body, 5, 1, 5, 0, 5.7, 0, '#E8473F');
+        box(body, 10, 3, 10, 0, -2.1, 0, '#F4F4F4'); box(body, 8, 1.6, 8, 0, -4.4, 0, '#F4F4F4'); box(body, 5, 1, 5, 0, -5.7, 0, '#F4F4F4');
+        box(body, 5.6, 4.6, 0.6, 0, 0, 5.1, '#23262E');
+        box(body, 4.8, 3.8, 0.4, 0, 0, 5.35, '#FFFFFF');
+        const scr = makeScreen(body, 4, 3, 0, 0, 5.57, { bg: '#1B2A49', eye: '#7FE8FF', mouth: '#7FE8FF' });
+        box(body, 1, 2, 1, 0, 7.2, 0, '#5EDB6A'); box(body, 2, 1, 1, 0.8, 8.4, 0, '#5EDB6A');
+        const tail = new THREE.Group(); tail.position.set(0, 0, -5.2); body.add(tail);
+        box(tail, 1.2, 1.2, 2.4, 0, 0, -1.2, '#FF9F1C'); box(tail, 1.2, 2.4, 1.2, 0, 1, -2.4, '#FF9F1C'); box(tail, 1.2, 1.2, 2, 0, 2.2, -3.4, '#FF9F1C');
+        return { g, screens: [scr], anim(t, st) {
+          const sq = Math.sin(t * (st === 'happy' ? 10 : 4)) * (st === 'happy' ? 0.1 : 0.05);
+          body.scale.set(1 - sq * 0.6, 1 + sq, 1 - sq * 0.6);
+          tail.rotation.y = Math.sin(t * (st === 'talk' ? 12 : 3)) * 0.5;
+        } };
+      }
+    },
+    {
+      id: 'plush', name: 'Plush Volty', tag: 'Cuddly',
+      tagline: 'Squishy, chubby, maximum cute.',
+      traits: ['Squash-and-stretch body like a plush toy', 'Always-on blush cheeks', 'Lightning ears and tiny feet'],
+      build() {
+        const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
+        box(body, 11, 9, 8, 0, 0, 0, '#FFD54A');
+        box(body, 9.4, 10.4, 6.6, 0, 0, 0, '#FFD54A');
+        box(body, 12, 7.4, 6.4, 0, 0, 0, '#FFD54A');
+        box(body, 7.8, 5.8, 0.3, 0, 0.6, 4.02, '#E0A92E');
+        const scr = makeScreen(body, 7, 5.25, 0, 0.6, 4.2, { bg: '#FFF6D8', eye: '#3B2A20', mouth: '#3B2A20', shine: '#FFF6D8', blush: true, cheek: '#FF8FA8' });
+        const ears = [-1, 1].map(s => {
+          const e = new THREE.Group(); e.position.set(3.2 * s, 5, 0); body.add(e);
+          box(e, 1.6, 2.6, 1.6, 0, 1.3, 0, '#FF9F1C'); box(e, 1.6, 1.6, 1.6, 0.9 * s, 2.9, 0, '#FF9F1C'); box(e, 1.6, 2, 1.6, 0.2 * s, 4.4, 0, '#FF9F1C');
+          return e;
+        });
+        [-1, 1].forEach(s => box(body, 2.6, 1.2, 3, 2.6 * s, -5.6, 0.6, '#FF9F1C'));
+        return { g, screens: [scr], anim(t, st) {
+          const sq = Math.sin(t * (st === 'happy' ? 9 : 3)) * (st === 'happy' ? 0.12 : 0.06);
+          body.scale.set(1 - sq * 0.7, 1 + sq, 1 - sq * 0.7);
+          ears.forEach((e, i) => { e.rotation.z = (i ? -1 : 1) * (0.1 + Math.sin(t * (st === 'talk' ? 12 : 2.5)) * 0.12); });
+        } };
+      }
+    },
+  ];
+
+  // ---------- scene ----------
+  const stage = document.getElementById('stage');
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  stage.prepend(renderer.domElement);
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(30, 1, 1, 500);
+  camera.position.set(0, 7, 54); camera.lookAt(0, -1.5, 0);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x8899aa, 0.85));
+  const sun = new THREE.DirectionalLight(0xffffff, 0.65); sun.position.set(20, 30, 25); scene.add(sun);
+
+  // Grass block pedestal + soft shadow.
+  const ped = new THREE.Group(); scene.add(ped);
+  box(ped, 18, 1.6, 18, 0, -10.3, 0, '#6DBE45'); box(ped, 18, 3.2, 18, 0, -12.7, 0, '#8B5A2B');
+  for (let i = 0; i < 10; i++) box(ped, 2, 0.4, 2, -8 + (i * 7.3) % 16, -9.4, -8 + (i * 5.1) % 16, i % 2 ? '#5AA83A' : '#7FCF55');
+  const shCv = document.createElement('canvas'); shCv.width = shCv.height = 64;
+  const shc = shCv.getContext('2d'); const grd = shc.createRadialGradient(32, 32, 2, 32, 32, 30);
+  grd.addColorStop(0, 'rgba(0,0,0,.35)'); grd.addColorStop(1, 'rgba(0,0,0,0)'); shc.fillStyle = grd; shc.fillRect(0, 0, 64, 64);
+  const shadow = new THREE.Mesh(new THREE.PlaneGeometry(12, 12), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(shCv), transparent: true, depthWrite: false }));
+  shadow.rotation.x = -Math.PI / 2; shadow.position.y = -9.45; scene.add(shadow);
+
+  const holder = new THREE.Group(); scene.add(holder);
+  const built = MODELS.map(m => Object.assign(m.build(), { def: m }));
+  built.forEach(b => { b.g.visible = false; holder.add(b.g); });
+
+  function resize() {
+    const r = stage.getBoundingClientRect();
+    renderer.setSize(r.width, r.height, false);
+    camera.aspect = r.width / Math.max(1, r.height); camera.updateProjectionMatrix();
+  }
+  new ResizeObserver(resize).observe(stage); resize();
+
+  // ---------- thumbnails (rendered once from the same scene) ----------
+  const shelf = document.getElementById('shelf');
+  const thumbs = [];
+  (function makeThumbs() {
+    const r = stage.getBoundingClientRect();
+    renderer.setSize(360, 360, false); camera.aspect = 1; camera.updateProjectionMatrix();
+    built.forEach((b, i) => {
+      built.forEach(o => o.g.visible = o === b);
+      holder.position.set(0, 0, 0); holder.rotation.set(0, -0.55, 0);
+      b.screens.forEach(s => { s.key = ''; drawFace(s, 'idle', 0, false); });
+      b.anim(0, 'idle');
+      renderer.render(scene, camera);
+      const btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'thumb';
+      btn.innerHTML = `<img alt="" src="${renderer.domElement.toDataURL('image/png')}"><span class="n"></span><span class="t"></span><span class="star"></span>`;
+      btn.querySelector('.n').textContent = b.def.name;
+      btn.querySelector('.t').textContent = b.def.tag;
+      btn.addEventListener('click', () => select(i));
+      shelf.appendChild(btn); thumbs.push(btn);
+    });
+    renderer.setSize(r.width, r.height, false); resize();
+  })();
+
+  // ---------- state ----------
+  let cur = 0, state = 'idle', stateUntil = 0, yaw = -0.5, dragging = false, lastX = 0, spinVel = 0;
+  let chosen = null;
+  try { chosen = localStorage.getItem('volty-pick'); } catch (e) {}
+
+  const $ = id => document.getElementById(id);
+  function select(i) {
+    cur = i;
+    built.forEach((b, j) => b.g.visible = j === i);
+    built[i].screens.forEach(s => s.key = '');
+    const d = MODELS[i];
+    $('tag').textContent = d.tag; $('name').textContent = d.name; $('tagline').textContent = d.tagline;
+    const ul = $('traits'); ul.textContent = '';
+    d.traits.forEach(t => { const li = document.createElement('li'); li.textContent = t; ul.appendChild(li); });
+    thumbs.forEach((t, j) => t.setAttribute('aria-current', j === i ? 'true' : 'false'));
+    poke('happy', 900);
+    refreshPick();
+  }
+  function refreshPick() {
+    const d = MODELS[cur];
+    const mine = chosen === d.id;
+    const btn = $('choose');
+    btn.setAttribute('aria-pressed', mine ? 'true' : 'false');
+    btn.textContent = mine ? 'Chosen!' : 'Choose this one';
+    thumbs.forEach((t, j) => t.querySelector('.star').textContent = MODELS[j].id === chosen ? 'Your pick' : '');
+    const pd = MODELS.find(m => m.id === chosen);
+    $('pick').hidden = !pd;
+    if (pd) { $('pick-name').textContent = pd.name; $('say').textContent = `Make Volty's model the ${pd.name}`; }
+  }
+  function poke(s, ms) { state = s; stateUntil = performance.now() + ms; }
+  $('b-talk').onclick = () => poke('talk', 2600);
+  $('b-pet').onclick = () => poke('happy', 1800);
+  $('b-bonk').onclick = () => poke('bonk', 1200);
+  $('choose').onclick = () => {
+    chosen = MODELS[cur].id;
+    try { localStorage.setItem('volty-pick', chosen); } catch (e) {}
+    poke('happy', 1800); refreshPick();
+  };
+  $('copy').onclick = async () => {
+    const txt = $('say').textContent, b = $('copy');
+    try { await navigator.clipboard.writeText(txt); b.textContent = 'Copied'; }
+    catch (e) { const r = document.createRange(); r.selectNodeContents($('say')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Selected'; }
+    setTimeout(() => b.textContent = 'Copy', 1500);
+  };
+
+  stage.addEventListener('pointerdown', e => { dragging = true; lastX = e.clientX; stage.setPointerCapture(e.pointerId); });
+  stage.addEventListener('pointermove', e => { if (!dragging) return; const dx = e.clientX - lastX; lastX = e.clientX; yaw += dx * 0.012; spinVel = dx * 0.012; });
+  const end = () => { dragging = false; };
+  stage.addEventListener('pointerup', end); stage.addEventListener('pointercancel', end);
+
+  // ---------- loop ----------
+  const t0 = performance.now();
+  function frame(now) {
+    const t = (now - t0) / 1000;
+    if (now > stateUntil) state = 'idle';
+    const b = built[cur];
+    if (!dragging) { spinVel *= 0.94; yaw += spinVel + (RM ? 0 : 0.004); }
+    let y = RM ? 0 : Math.sin(t * 2) * 0.6, x = 0, rz = 0;
+    if (state === 'happy') y += Math.abs(Math.sin(t * 10)) * 1.4;
+    if (state === 'bonk') { const k = Math.max(0, (stateUntil - now) / 1200); x = Math.sin(t * 45) * 0.8 * k; rz = Math.sin(t * 30) * 0.2 * k; }
+    holder.position.set(x, y, 0); holder.rotation.set(0, yaw, rz);
+    const sc = 1 - y * 0.03; shadow.scale.set(sc, sc, sc);
+    b.anim(t, state);
+    const blink = state === 'idle' && (t % 3.4) < 0.14;
+    b.screens.forEach(s => drawFace(s, state, t, blink));
+    renderer.render(scene, camera);
+    requestAnimationFrame(frame);
+  }
+  const startIdx = Math.max(0, MODELS.findIndex(m => m.id === chosen));
+  select(startIdx);
+  requestAnimationFrame(frame);
+})();
+</script>

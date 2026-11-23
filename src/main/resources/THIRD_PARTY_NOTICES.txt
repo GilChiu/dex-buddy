@@ -1,0 +1,36 @@
+Dex Buddy - third-party software
+=================================
+
+Dex Buddy is MIT licensed (see LICENSE). It includes, unmodified, the open-source libraries below,
+each under its own license. Their original jars (with their own license/notice files) are bundled
+inside this mod's jar under META-INF/jars/.
+
+Bundled in the mod
+------------------
+- Lavaplayer 2.2.7 (dev.arbjerg:lavaplayer, lava-common, lavaplayer-natives)
+  Apache License 2.0 - https://github.com/lavalink-devs/lavaplayer
+- youtube-source 1.18.2 (dev.lavalink.youtube:common)
+  MIT License - https://github.com/lavalink-devs/youtube-source
+- Vosk 0.3.45 (com.alphacephei:vosk) - offline wake-word recognition
+  Apache License 2.0 - https://github.com/alphacep/vosk-api
+- Jackson 2.15.2 (core, databind, annotations)
+  Apache License 2.0 - https://github.com/FasterXML/jackson
+- Mozilla Rhino 1.7.15 (rhino, rhino-engine)
+  Mozilla Public License 2.0 - source: https://github.com/mozilla/rhino
+- jsoup 1.16.1 - MIT License - https://jsoup.org
+- nanojson 1.7 - MIT / Apache License 2.0 (dual) - https://github.com/mmastrac/nanojson
+- org.json 20240303 - Public Domain - https://github.com/stleary/JSON-java
+- iharder Base64 2.3.9 - Public Domain - http://iharder.sourceforge.net/current/java/base64/
+
+Downloaded on first use (not bundled)
+-------------------------------------
+- Piper text-to-speech engine - MIT License - https://github.com/rhasspy/piper
+- Piper voice models from https://huggingface.co/rhasspy/piper-voices - each voice has its own
+  license (the default voice, LJ Speech, is public domain); see the voice's MODEL_CARD.
+- Vosk English speech model - Apache License 2.0 - https://alphacephei.com/vosk/models
+
+Not affiliated
+--------------
+Dex Buddy is a fan-made add-on for Cobblemon. It is not affiliated with or endorsed by the Cobblemon
+team, Nintendo, Game Freak, The Pokemon Company, Google/YouTube, or SoundCloud. Music is streamed
+from those services by each player's own game; no music is stored in or distributed with this mod.

@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "dexbuddy",
+  "version": "${version}",
+  "name": "Dex Buddy",
+  "description": "A voice-powered Dex companion for Cobblemon. Say \"Hey Dex\" and ask about any Cobblemon, take photos together, collect costumes, and share pictures with friends.",
+  "authors": ["Zaredchiu"],
+  "license": "MIT",
+  "icon": "assets/dexbuddy/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      { "adapter": "kotlin", "value": "dev.dexbuddy.DexBuddyMod" }
+    ],
+    "client": [
+      { "adapter": "kotlin", "value": "dev.dexbuddy.client.DexBuddyClient" }
+    ],
+    "voicechat": [
+      "dev.dexbuddy.compat.VoiceChatPlugin"
+    ]
+  },
+  "mixins": [
+    { "config": "dexbuddy.mixins.json", "environment": "client" }
+  ],
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "fabric-api": "*",
+    "fabric-language-kotlin": ">=1.13.0",
+    "cobblemon": ">=1.7.3"
+  },
+  "suggests": {
+    "voicechat": "*"
+  }
+}

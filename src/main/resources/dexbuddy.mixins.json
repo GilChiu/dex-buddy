@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "dev.dexbuddy.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "GameRendererFovMixin",
+    "ItemInHandRendererMixin",
+    "GameRendererRenderMixin",
+    "CameraAccessor"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

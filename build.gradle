@@ -1,0 +1,133 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+
+plugins {
+	id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
+	id 'org.jetbrains.kotlin.jvm' version "${kotlin_version}"
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+	archivesName = project.archives_base_name
+}
+
+repositories {
+	mavenCentral()
+	maven {
+		name = "maxhenkel"
+		url = "https://maven.maxhenkel.de/repository/public"
+	}
+	// Lavaplayer (audio streaming, Apache-2.0) and its YouTube source (MIT): Dex's music player.
+	maven {
+		name = "lavalink"
+		url = "https://maven.lavalink.dev/releases"
+	}
+}
+
+configurations {
+	// Libraries bundled inside the Dex Buddy jar (players install nothing extra).
+	musicLibs
+	implementation.extendsFrom musicLibs
+}
+
+// Dev testing on one PC: runServer, then runClient -PautoJoin to connect to it.
+// Or -Psp=<world> to open a singleplayer world from run/saves.
+def autoJoin = project.hasProperty('autoJoin') ? ["--quickPlayMultiplayer", "localhost"]
+	: project.hasProperty('sp') ? ["--quickPlaySingleplayer", project.property('sp')] : []
+loom {
+	runs {
+		client {
+			programArgs(["--username", "Trainer"] + autoJoin)
+			// -Pselftest logs which data cards the sentences in run/selftest.txt would pull in.
+			if (project.hasProperty('selftest')) vmArg "-Ddexbuddy.selftest=${file('run/selftest.txt')}"
+		}
+		server {
+			runDir "run-server"
+		}
+		// A second player for multiplayer tests: runClient2 (own folder, joins the dev server).
+		client2 {
+			client()
+			name "Minecraft Client 2"
+			runDir "run2"
+			programArgs(["--username", "Trainer2", "--quickPlayMultiplayer", "localhost"])
+			if (project.hasProperty('selftest')) vmArg "-Ddexbuddy.selftest=${file('run2/selftest.txt')}"
+		}
+	}
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	mappings loom.officialMojangMappings()
+	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+	modImplementation "net.fabricmc:fabric-language-kotlin:${project.flk_version}"
+
+	// The exact Cobblemon build every client and the server run (Abes-Hutts patched 1.7.3).
+	// Compile-only: the pack provides it at runtime.
+	modCompileOnly files("libs/Abes-Hutts-Cobblemon-1.21.1.1.7.3-1.0.3.jar")
+	// Dev runs only (runClient / runServer); never shipped.
+	modLocalRuntime files("libs/Abes-Hutts-Cobblemon-1.21.1.1.7.3-1.0.3.jar")
+	// The patched Cobblemon needs Trinkets at runtime (the pack ships 3.10.0).
+	modLocalRuntime fileTree(dir: "libs/devrun", include: "*.jar")
+
+	// Offline wake-word listener ("Hey Dex"). Bundled inside the mod jar; Minecraft already ships JNA.
+	implementation("com.alphacephei:vosk:0.3.45") { transitive = false }
+	include "com.alphacephei:vosk:0.3.45"
+
+	// Dex's music player.
+	musicLibs "dev.arbjerg:lavaplayer:2.2.7"
+	musicLibs "dev.lavalink.youtube:common:1.18.2"
+	// Bundled into the jar: those libraries and what they need, minus what Minecraft 1.21.1 already ships
+	// (slf4j, commons-io, commons-codec, commons-logging, httpclient, httpcore).
+	[
+		"dev.arbjerg:lavaplayer:2.2.7", "dev.arbjerg:lavaplayer-natives:2.2.7", "dev.arbjerg:lava-common:2.2.7",
+		"dev.lavalink.youtube:common:1.18.2", "com.grack:nanojson:1.7",
+		"org.mozilla:rhino-engine:1.7.15", "org.mozilla:rhino:1.7.15",
+		"org.jsoup:jsoup:1.16.1", "net.iharder:base64:2.3.9", "org.json:json:20240303",
+		"com.fasterxml.jackson.core:jackson-core:2.15.2", "com.fasterxml.jackson.core:jackson-databind:2.15.2",
+		"com.fasterxml.jackson.core:jackson-annotations:2.15.2",
+	].each { include it }
+
+	// Simple Voice Chat API: optional. The plugin class only loads when Voice Chat is installed.
+	compileOnly "de.maxhenkel.voicechat:voicechat-api:2.5.27"
+
+	testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
+	testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+}
+
+test {
+	useJUnitPlatform()
+}
+
+processResources {
+	inputs.property "version", project.version
+	filesMatching("fabric.mod.json") {
+		expand "version": inputs.properties.version
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 21
+}
+
+kotlin {
+	compilerOptions {
+		jvmTarget = JvmTarget.JVM_21
+		// The pack's Kotlin runtime is 2.2.10: never emit calls to newer stdlib APIs.
+		apiVersion = KotlinVersion.KOTLIN_2_2
+		languageVersion = KotlinVersion.KOTLIN_2_2
+	}
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_21
+	targetCompatibility = JavaVersion.VERSION_21
+}
+
+// Ship the mod's own license inside the jar (the third-party notices are in src/main/resources).
+jar {
+	from("LICENSE") { rename { "${it}_dexbuddy" } }
+}
+
