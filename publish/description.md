@@ -8,7 +8,8 @@ Then let it out. Your Dex becomes **Volty**, a little floating companion that fo
 
 ## Talk to your Dex
 
-- **Hands-free:** say *"Hey Dex"* then your question, or hold a key if you prefer.
+- **Hands-free:** say *"Hey Dex"* then your question. Or hold left-click with your Dex to talk, or type `@dex` in chat.
+- **No wake word needed** for quick things: *"what Cobblemon is this?"*, *"stop"*, *"be quiet for 10 minutes"*.
 - **Knows your world:** types and weaknesses, abilities, moves, evolutions, and where any Cobblemon spawns. It also knows what's spawning near you, what you're looking at (even far away), and what's on your team.
 - **Speaks back** with a cute voice (several to pick from), with subtitles.
 - **Remembers** things you tell it.
@@ -22,29 +23,41 @@ Then let it out. Your Dex becomes **Volty**, a little floating companion that fo
 - **Plays with you:** hide and seek, tricks, *"light the way"* in caves, and *"Who's that Cobblemon?"* quizzes where Volty turns into the mystery silhouette.
 - **Reacts** to your battles, catches and shiny finds, and greets other Trainers.
 
-## Five looks to collect
+## 25 looks to collect
 
-Phone Dex, Classic Dex, Flip Dex, Dex Ball and Plush Dex. Unlock them by growing your friendship, filling your Pokédex, winning quiz streaks, or finding them while your companion is charged. Once unlocked, swap any time: *"wear the plush!"*
+Five Dex styles (Phone, Classic, Flip, Dex Ball, Plush) plus **20 costumes**: Kawaii Cat, Goth Bat, Cyber Neon, Sakura, Pixel Ghost, Lo-Fi Chill and more. By default every costume is free to wear from the start. Servers can switch to earning them instead: friendship, catches by type, battle wins, quiz streaks, seasons, and more. Swap any time in the Wardrobe or by voice: *"wear the plush!"*
 
-## Take pictures together
+## Scan Cobblemon
+
+Hold right-click with your Dex pointed at a Cobblemon: the phone rises, zooms in and scans it, then shows a holo tag with its info. Scans count in your Cobblemon Pokédex too. Tap right-click to open the phone instead.
+
+## Take pictures and videos together
 
 - *"Take a picture of me"*: Volty flies out, frames you (**close-up, portrait or wide shot**), counts down and snaps the photo from its own eyes.
-- Or use the camera yourself, with a viewfinder.
+- *"Take a video of me"*: it films you until you say *"stop"* (up to 15 seconds).
+- **Tripod mode:** *"tripod mode"* and Volty stays put while you pose. *"Cheese"* shoots, *"done"* ends it.
+- Or use the camera yourself: tap for a photo, hold to record.
 - Photos go to your **gallery**, and a copy is saved to your `screenshots/dexbuddy` folder.
 
 ## The Dex Phone
 
 Right-click your Dex to open your phone. It follows the game's day and night, with Volty's face on the home screen.
 
-- **Gallery** and **Wardrobe**
-- **Feed:** your friends' posts, with likes
+- **Gallery** (photos and videos) and **Wardrobe**
+- **Feed:** your friends' posts, with likes and comments
+- **Messages:** text your friends and send them pictures and videos, or chat with Volty
 - **Friends:** requests, and players nearby to add
 - **Profile:** your picture and your posts
+- **Settings:** voice volume, microphone, and which things Volty speaks up about, plus a **Quick guide** to every trick
 - **Quiz**, plus a **flashlight** and **camera** shortcut
 
 ## Share with friends
 
-Add friends (from the phone, or hold your Dex and sneak + right-click them), post your best shots with a caption, like each other's photos, and set a profile picture. Volty tells you when someone likes your photo or wants to be friends.
+Add friends (from the phone, or hold your Dex and sneak + right-click them), post your best shots with a caption, like and comment, send each other pictures and videos, and save the ones friends send you. Volty tells you when someone likes your photo, messages you, or wants to be friends.
+
+## Music (optional, off by default)
+
+Your Dex can play songs while it floats beside you or rides in your inventory, and nearby players hear it fade with distance, like proximity chat. It's **off unless the server owner turns it on** (`"musicEnabled": true`). Songs stream from YouTube or SoundCloud on each player's own game. YouTube currently blocks many videos, so it's experimental.
 
 ## One Dex, yours forever
 
@@ -95,11 +108,15 @@ The server owner puts a key in the server's `config/dexbuddy-server.json` and se
   - `apiKey`: your key (never sent to players)
   - `chatPerMinute`, `voiceClipsPerMinute`: per-player limits
   - `maxTokens`: the longest reply a player can get
+  - `model`: lock the AI model players use on your key (recommended for paid keys)
+  - `unlockAllCostumes`: all costumes free from the start (default `true`)
+  - `clipMaxSeconds`: longest video clip (default 15, `0` turns videos off)
+  - `musicEnabled`: the music player (default `false`)
 - **Saved data:** everything lives in your world folder under `dexbuddy/`.
-  - Photos: `dexbuddy/photos/<player>/`
-  - Friends, posts and likes: `dexbuddy/social.json`
+  - Photos and videos: `dexbuddy/photos/<player>/`
+  - Friends, posts, comments, likes and messages: `dexbuddy/social.json`
   - Each player's companion is saved with the player.
-- **Limits:** each player can keep up to 200 photos.
+- **Limits:** each player can keep up to 200 photos, 30 of them videos. Requests are rate-limited per player.
 
 ## Privacy and data
 
@@ -110,16 +127,20 @@ Please read this before installing.
   - Groq by default, using your key or your server owner's key, through the Minecraft server.
   - What's sent with your question is the text plus the game details needed to answer: your team, nearby Cobblemon, your location and biome.
   - The voice that answers you is generated on your own computer.
-- **Photos go to the server you're playing on.** Each photo is uploaded to that Minecraft server so you can see it in your gallery. Posts are visible only to your friends there. Profile pictures are visible to everyone on that server.
+- **Photos, videos and messages are stored on the server you're playing on**, in its world folder, so the server's admins can see them. Posts are visible only to your friends there. Profile pictures are visible to everyone on that server. When a friend saves your photo, where you took it is not shared.
 - **Your key stays with you.** It's stored in your config file and only sent to the AI service you set. A server owner's key never leaves the server.
 - **Memory stays local.** Things your Dex remembers about you are kept in a file on your computer.
+- **Your game log stays clean.** What you say to your Dex and what it says back are not written to your game log.
+- **Music (if the server enables it):** songs stream from YouTube or SoundCloud directly to your game. Signing in to YouTube is optional; the sign-in stays on your computer (`config/dexbuddy-youtube.json`). Use a spare Google account if you sign in.
 
 ## Credits
 
 - Offline wake-word listening: **Vosk** (Apache License 2.0), included in the mod.
 - Offline voice: **Piper** (MIT License) and its public voice models, downloaded on first launch.
+- Music: **Lavaplayer** (Apache License 2.0) and **youtube-source** (MIT), included in the mod.
 - AI answers and speech-to-text: **Groq** by default (any compatible service works).
+- Full list of included libraries and their licenses: `THIRD_PARTY_NOTICES.txt` in the mod jar.
 
-Dex Buddy is a fan-made add-on for Cobblemon. It is not affiliated with or endorsed by the Cobblemon team, Mojang, or any other company.
+Dex Buddy is a fan-made add-on for Cobblemon. It is not affiliated with or endorsed by the Cobblemon team, Mojang, Nintendo, Game Freak, The Pokémon Company, Google/YouTube, SoundCloud, or any other company.
 
-**License:** MIT. Made by Zaredchiu.
+**License:** MIT. Source: https://github.com/GilChiu/dex-buddy. Made by Zaredchiu.

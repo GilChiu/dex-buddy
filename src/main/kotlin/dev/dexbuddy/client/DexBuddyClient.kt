@@ -494,6 +494,58 @@ object DexBuddyClient : ClientModInitializer {
                                 }
                             }, "dexbuddy-selftest-showcase").apply { isDaemon = true }.start()
                         }
+                        // "photoshoot:<start s>:<seconds each>" wears every look in turn, parked in front of you in daylight,
+                        // and saves a clean screenshot of each (no HUD) to screenshots/dexbuddy-look-NN-<id>.png.
+                        all.filter { it.startsWith("photoshoot:") }.forEach { c ->
+                            val parts = c.removePrefix("photoshoot:").split(':')
+                            val start = parts.getOrNull(0)?.toDoubleOrNull() ?: 25.0
+                            val each = parts.getOrNull(1)?.toDoubleOrNull() ?: 3.0
+                            Thread({
+                                Thread.sleep((start * 1000).toLong())
+                                val oldFov = client.options.fov().get()
+                                client.execute {
+                                    if (client.screen != null) client.setScreen(null)
+                                    client.options.hideGui = true
+                                    client.options.fov().set(30) // zoomed in, so the companion fills the frame
+                                    org.lwjgl.glfw.GLFW.glfwSetWindowSize(client.window.window, 1600, 900)
+                                }
+                                // One fixed spot and direction for every shot.
+                                var spot: net.minecraft.world.phys.Vec3? = null; var spotYaw = 0f
+                                for ((i, look) in dev.dexbuddy.entity.Look.entries.withIndex()) {
+                                    client.singleplayerServer?.let { server -> server.execute {
+                                        val p = server.playerList.players.firstOrNull() ?: return@execute
+                                        val level = p.serverLevel()
+                                        level.dayTime = 6000; level.setWeatherParameters(6000, 0, false, false)
+                                        if (spot == null) { spot = p.position(); spotYaw = p.yRot }
+                                        val s = spot!!
+                                        p.teleportTo(level, s.x, s.y, s.z, spotYaw, 0f)
+                                        val b = dev.dexbuddy.entity.DexBuddyEntity.active[p.uuid]?.takeIf { it.isAlive }
+                                            ?: dev.dexbuddy.entity.BuddyLink.spawn(p) ?: return@execute
+                                        b.unlockCostume(look)
+                                        b.command("look:${look.id}", p)
+                                        // Parked 2 blocks ahead, at chest height, facing you.
+                                        val yaw = Math.toRadians(spotYaw.toDouble())
+                                        b.deltaMovement = net.minecraft.world.phys.Vec3.ZERO
+                                        b.teleportTo(s.x - kotlin.math.sin(yaw) * 2.0, s.y + 1.0, s.z + kotlin.math.cos(yaw) * 2.0)
+                                        b.command("stay", p)
+                                    } }
+                                    Thread.sleep((each * 1000 * 0.7).toLong())
+                                    client.execute {
+                                        val p = client.player ?: return@execute
+                                        dev.dexbuddy.client.entity.CompanionClient.mine(p, 16.0)?.let { b ->
+                                            p.lookAt(net.minecraft.commands.arguments.EntityAnchorArgument.Anchor.EYES, b.position().add(0.0, b.bbHeight * 0.5, 0.0))
+                                        }
+                                    }
+                                    Thread.sleep((each * 1000 * 0.3).toLong())
+                                    client.execute {
+                                        net.minecraft.client.Screenshot.grab(client.gameDirectory, "dexbuddy-look-%02d-%s.png".format(i + 1, look.id), client.mainRenderTarget) {}
+                                        LOG.info("[dexbuddy] selftest photoshoot {} {}", i + 1, look.id)
+                                    }
+                                    Thread.sleep(500)
+                                }
+                                client.execute { client.options.hideGui = false; client.options.fov().set(oldFov); LOG.info("[dexbuddy] selftest photoshoot done") }
+                            }, "dexbuddy-selftest-photoshoot").apply { isDaemon = true }.start()
+                        }
                         // "look:" keeps the camera on your companion for a minute (to screenshot it).
                         if (all.any { it.startsWith("look:") }) {
                             Thread({
